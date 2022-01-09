@@ -1,0 +1,1 @@
+Just a simple react native app in order to learn mob. dev.
