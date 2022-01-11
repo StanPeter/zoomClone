@@ -1,13 +1,70 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import Header from 'components/Header';
+import React, { useEffect, useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { io } from 'socket.io-client';
+import { API_URL } from '../utils/constants';
+
+let socket;
 
 function MeetingRoom() {
     const [name, setName] = useState('');
     const [roomId, setRoomId] = useState(null);
+    const [activeUsers, setActiveUsers] = useState([]);
+
+    useEffect(() => {
+        // const socket = io("ws://example.com/my-namespace", {
+        //     reconnectionDelayMax: 10000,
+        //     auth: {
+        //         token: "123"
+        //     },
+        //     query: {
+        //         "my-key": "my-value"
+        //     }
+        // });
+
+        socket = io(API_URL);
+        // const socket = io('ws://localhost:3001');
+        console.log('connecting FE');
+
+        // socket.on('connect', d => {
+        //     socket.send('connected', socket.id, socket.connected);
+        // });
+
+        socket.on('error', error => console.log(error, 'error'));
+
+        socket.on('all-users', users => {
+            console.log(users);
+            setActiveUsers(users);
+        });
+
+        // socket.emit("hello", "world");
+        // socket.emit("with-binary", 1, "2", { 3: "4", 5: Buffer.from([6, 7, 8]) });
+    }, []);
 
     const meetingBtnHandler = () => {
         console.log('clicked');
+
+        if (roomId && name) {
+            socket.emit('join-room', roomId, name);
+        } else {
+            Alert.alert(
+                "Missing information",
+                "Either the room Id or username was not set",
+                [
+                    {
+                        text: "Cancel",
+                        // onPress: () => Alert.alert("Cancel Pressed"),
+                        style: "cancel",
+                    },
+                ],
+                {
+                    cancelable: true,
+                    // onDismiss: () =>
+                    //     Alert.alert(
+                    //         "This alert was dismissed by tapping outside of the alert dialog."
+                    //     ),
+                }
+            );
+        }
     };
 
     return (
@@ -25,7 +82,7 @@ function MeetingRoom() {
                     <TextInput
                         value={roomId}
                         onChangeText={(d) => setRoomId(d)}
-                        placeholder='Enter something'
+                        placeholder='Enter Room ID'
                         placeholderTextColor={'#767476'}
                         style={styles.textInput} />
                 </View>

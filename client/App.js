@@ -3,8 +3,12 @@ import MeetingRoom from "screens/MeetingRoom";
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StyleSheet } from "react-native";
+import { useEffect } from "react";
 
 export default function App() {
+    // useEffect(() => {
+    // }, []);
+
     const Stack = createNativeStackNavigator();
 
     return (
