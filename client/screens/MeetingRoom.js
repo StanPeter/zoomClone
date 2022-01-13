@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Alert, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { io } from 'socket.io-client';
 import { API_URL } from '../utils/constants';
+import { Camera } from 'expo-camera';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 let socket;
 
@@ -9,6 +11,7 @@ function MeetingRoom() {
     const [name, setName] = useState('');
     const [roomId, setRoomId] = useState(null);
     const [activeUsers, setActiveUsers] = useState([]);
+    const [startCamera, setStartCamera] = useState(false);
 
     useEffect(() => {
         // const socket = io("ws://example.com/my-namespace", {
@@ -40,10 +43,21 @@ function MeetingRoom() {
         // socket.emit("with-binary", 1, "2", { 3: "4", 5: Buffer.from([6, 7, 8]) });
     }, []);
 
+    const startCamera = async () => {
+        //permissions
+        const { status } = await Camera.requestCameraPermissionsAsync();
+
+        console.log(status, ' status permission');
+
+        if (status === 'granted') setStartCamera(true);
+        else Alert.alert('Access denied');
+    };
+
     const meetingBtnHandler = () => {
         console.log('clicked');
 
         if (roomId && name) {
+            startCamera();
             socket.emit('join-room', roomId, name);
         } else {
             Alert.alert(
@@ -69,32 +83,54 @@ function MeetingRoom() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.meetingContainer}>
-                <View style={styles.inputField}>
-                    <TextInput
-                        value={name}
-                        onChangeText={(d) => setName(d)}
-                        placeholder='Enter name'
-                        placeholderTextColor={'#767476'}
-                        style={styles.textInput} />
-                </View>
-                <View style={styles.inputField}>
-                    <TextInput
-                        value={roomId}
-                        onChangeText={(d) => setRoomId(d)}
-                        placeholder='Enter Room ID'
-                        placeholderTextColor={'#767476'}
-                        style={styles.textInput} />
-                </View>
-                <View style={styles.meetingBtnContainer}>
-                    <TouchableOpacity
-                        onPress={meetingBtnHandler}
-                        style={styles.meetingBtn}
-                    >
-                        <Text style={styles.meetingBtnText}>Start Meeting</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+            {startCamera
+                ? (
+                    <SafeAreaView>
+                        <Camera
+                            type={'front'}
+                            style={{ width: '100%', height: 600 }}
+                        ></Camera>
+                        <View style={styles.cameraMenu}>
+                            <TouchableOpacity style={styles.cameraIconContainer}>
+                                <FontAwesome
+                                    name={'microphone'}
+                                    size={24}
+                                    color={'#efefef'}
+                                />
+                                <Text style={styles.cameraIconText}>Mute</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </SafeAreaView>
+                )
+                : (
+                    <View style={styles.meetingContainer}>
+                        <View style={styles.inputField}>
+                            <TextInput
+                                value={name}
+                                onChangeText={(d) => setName(d)}
+                                placeholder='Enter name'
+                                placeholderTextColor={'#767476'}
+                                style={styles.textInput} />
+                        </View>
+                        <View style={styles.inputField}>
+                            <TextInput
+                                value={roomId}
+                                onChangeText={(d) => setRoomId(d)}
+                                placeholder='Enter Room ID'
+                                placeholderTextColor={'#767476'}
+                                style={styles.textInput} />
+                        </View>
+                        <View style={styles.meetingBtnContainer}>
+                            <TouchableOpacity
+                                onPress={meetingBtnHandler}
+                                style={styles.meetingBtn}
+                            >
+                                <Text style={styles.meetingBtnText}>Start Meeting</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                )}
         </View>
     );
 }
@@ -136,5 +172,16 @@ const styles = StyleSheet.create({
     meetingBtnText: {
         color: '#fff',
         fontWeight: 'bold',
-    }
+    },
+    cameraMenu: {},
+    cameraIconContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: 50,
+        marginTop: 15,
+    },
+    cameraIconText: {
+        color: '#fff',
+        marginTop: 10,
+    },
 });
