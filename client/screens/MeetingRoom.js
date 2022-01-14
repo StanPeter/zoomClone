@@ -7,11 +7,35 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 let socket;
 
+const cameraMenuIcons = [
+    {
+        id: 0,
+        name: 'microphone',
+        title: 'Mute',
+        customColor: '#efefef',
+    },
+    {
+        id: 1,
+        name: 'video-camera',
+        title: 'Stop Video',
+    },
+    {
+        id: 2,
+        name: 'upload',
+        title: 'Share Content',
+    },
+    {
+        id: 3,
+        name: 'group',
+        title: 'Participants',
+    },
+];
+
 function MeetingRoom() {
     const [name, setName] = useState('');
     const [roomId, setRoomId] = useState(null);
-    const [activeUsers, setActiveUsers] = useState([]);
-    const [startCamera, setStartCamera] = useState(false);
+    const [activeUsers, setActiveUsers] = useState(['Bot1', 'Bot2', 'Bot3', 'Bot4']);
+    const [cameraActive, setCameraActive] = useState(false);
 
     useEffect(() => {
         // const socket = io("ws://example.com/my-namespace", {
@@ -49,7 +73,7 @@ function MeetingRoom() {
 
         console.log(status, ' status permission');
 
-        if (status === 'granted') setStartCamera(true);
+        if (status === 'granted') setCameraActive(true);
         else Alert.alert('Access denied');
     };
 
@@ -83,22 +107,45 @@ function MeetingRoom() {
 
     return (
         <View style={styles.container}>
-            {startCamera
+            {cameraActive
                 ? (
-                    <SafeAreaView>
-                        <Camera
-                            type={'front'}
-                            style={{ width: '100%', height: 600 }}
-                        ></Camera>
-                        <View style={styles.cameraMenu}>
-                            <TouchableOpacity style={styles.cameraIconContainer}>
-                                <FontAwesome
-                                    name={'microphone'}
-                                    size={24}
-                                    color={'#efefef'}
-                                />
-                                <Text style={styles.cameraIconText}>Mute</Text>
-                            </TouchableOpacity>
+                    <SafeAreaView style={{ flex: 1 }}>
+                        <View style={styles.allUsersContainer}>
+                            <View style={styles.cameraContainer}>
+                                <Camera
+                                    type={'front'}
+                                    style={{
+                                        width: activeUsers.length === 0
+                                            ? '100%'
+                                            : '50%',
+                                        height: activeUsers.length === 0
+                                            ? 600
+                                            : 200,
+                                    }}
+                                ></Camera>
+                                {activeUsers.map((user, i) => (
+                                    <View style={styles.activeUserContainer} key={i}>
+                                        <Text style={{
+                                            color: '#fff',
+
+                                        }}>{user}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+                        <View style={styles.cameraMenuIconsContainer}>
+                            {cameraMenuIcons.map(icon => (
+                                <TouchableOpacity
+                                    key={icon.id}
+                                    style={styles.cameraIconContainer}>
+                                    <FontAwesome
+                                        name={icon.name}
+                                        size={24}
+                                        color={icon.customColor || '#efefef'}
+                                    />
+                                    <Text style={styles.cameraIconText}>{icon.title}</Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
                     </SafeAreaView>
                 )
@@ -173,15 +220,41 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
     },
-    cameraMenu: {},
+    cameraContainer: {
+        // flex: 1,
+        backgroundColor: 'black',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        backgroundColor: 'black',
+    },
+    allUsersContainer: {
+        flex: 1,
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    cameraMenuIconsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+    },
     cameraIconContainer: {
         justifyContent: 'center',
         alignItems: 'center',
         height: 50,
         marginTop: 15,
+        marginBottom: 30,
     },
     cameraIconText: {
         color: '#fff',
         marginTop: 10,
+    },
+    activeUserContainer: {
+        borderColor: 'gray',
+        borderWidth: 1,
+        width: '50%',
+        height: 200,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
