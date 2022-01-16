@@ -5,14 +5,19 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 
 const port = 3001;
-const users = [];
+const users = [
+    // {
+    //     userName: 'Philip',
+    //     roomId: 1,
+    // }
+];
 
 app.get('/', (req, res) => {
     res.send('hey');
 });
 
 const getUsers = (roomId) => users.filter(user => user.roomId === roomId);
-const addUser = (roomId, userName) => users.push({ roomId, userName });
+const addUser = (userName, roomId) => users.push({ userName, roomId });
 const removeUser = (userName) => users.filter(user => user.userName !== userName);
 
 io.on('connection', socket => {
@@ -29,7 +34,7 @@ io.on('connection', socket => {
 
         socket.join(roomId); //join | create a new room with socket.io rooms
 
-        addUser(roomId, userName); //for now not a real DB 
+        addUser(userName, roomId); //for now not a real DB 
 
         console.log('joined', roomId, userName);
 
